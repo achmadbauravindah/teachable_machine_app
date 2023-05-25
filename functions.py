@@ -3,9 +3,7 @@ from tensorflow.keras import layers, models
 from tensorflow.keras.utils import load_img, img_to_array, array_to_img, to_categorical
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import MobileNetV2
-import pickle
 import base64
-import zipfile
 
 
 import streamlit as st
