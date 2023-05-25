@@ -2,6 +2,11 @@ import tensorflow as tf
 from tensorflow.keras import layers, models
 from tensorflow.keras.utils import load_img, img_to_array, array_to_img, to_categorical
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications import MobileNetV2
+import pickle
+import base64
+import zipfile
+
 
 import streamlit as st
 import numpy as np
@@ -56,7 +61,8 @@ def calculateConfusionMatrix(model, data_test_gen):
     
     y_true = np.array(labels_data)
     y_true = np.argmax(y_true, axis=1)
-    y_pred = model.predict_generator(data_test_gen)
+    y_pred = model.predict(data_test_gen)
+    # y_pred = json.dumps(y_pred.tolist()) # EagerTensor Error
     y_pred = np.argmax(y_pred, axis=1)
     cm_results = confusion_matrix(y_true, y_pred)
     return cm_results
@@ -98,21 +104,19 @@ def trainingModel():
     test_data_gen = datagen.flow(images_data, labels_data, batch_size=batch_size, subset='validation')
 
     # Model CNN
-    model = models.Sequential([
-            # cnn
-            layers.Conv2D(filters=5, kernel_size=(3,3), activation='relu', input_shape=(256, 256,3)),
-            layers.MaxPooling2D((2,2)),
 
-            layers.Conv2D(filters=7, kernel_size=(3,3), activation='relu'),
-            layers.MaxPooling2D((2,2)),
-
-            # dense
-            layers.Flatten(),
-            layers.Dense(10, activation='relu'),
-            layers.Dense(num_label, activation='softmax')
-    ])
+    # Membuat model MobileNetV2
+    base_model = MobileNetV2(weights='imagenet', include_top=False, input_shape=(256, 256, 3))
+    # Membekukan semua layer pada base model agar tidak diubah selama pelatihan
+    for layer in base_model.layers[:-3]:
+        layer.trainable = False
+    # Menambahkan lapisan global average pooling dan lapisan output klasifikasi
+    base_model_output = base_model.output
+    flatten = layers.GlobalAveragePooling2D()(base_model_output)
+    out = layers.Dense(num_label, activation='softmax')(flatten)
+    model = models.Model(inputs=base_model.input, outputs=out)
     # Configure CNN Model
-    model.compile(optimizer=tf.keras.optimizers.Adam(lr=lr), 
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), 
                 loss='categorical_crossentropy', 
                 metrics=['accuracy'],
                 )
@@ -124,10 +128,10 @@ def trainingModel():
 
     st.session_state.cm_results = cm_results
     st.session_state.isModelTrained = True
-    model.save("model_trained.h5")
+    model.save('simple_teachable_machine_model_trained.h5')
     return model
 
-def displaySidebarResults():
+def displaySidebarResults(model):
     cm = st.session_state.cm_results
     # Display Confusion Matrix
     display_cm = displayConfusionMatrix(cm)
@@ -143,6 +147,12 @@ def displaySidebarResults():
             st.sidebar.write("Kelas: {} - Akurasi: Tidak ada sample data".format(label, accuracy_per_class[idx]))
         else:
             st.sidebar.write("Kelas: {} - Akurasi: {}".format(label, accuracy_per_class[idx]))
+
+    file_path = 'simple_teachable_machine_model_trained.h5'
+    model = model.to_json().encode('utf-8')
+    encoded_h5 = base64.b64encode(model).decode('utf-8')
+    href = f'<a href="data:file/h5;base64,{encoded_h5}" download="{file_path}">Download Model .h5</a>'
+    st.sidebar.markdown(href, unsafe_allow_html=True)
 
 def getPredictedImage(model):
     img = load_img(st.session_state.data_image_predict, target_size=(256, 256))

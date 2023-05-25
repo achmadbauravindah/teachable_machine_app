@@ -72,6 +72,7 @@ if total_class_input:
         if int(total_class_input) < 2:
             st.warning('Please fill number of classes more than 2', icon="⚠️")
         else:
+        
             for idx_class in range(int(total_class_input)):
                 st.text_input("Fill Class Name", label_visibility='hidden', placeholder="Class Name", key="data_class_name_{}".format(idx_class), on_change=isCompleteData)
                 st.file_uploader("Add image to train", accept_multiple_files=True, key="data_image_samples_{}".format(idx_class), on_change=isCompleteData, type=['jpg', 'jpeg', 'png', 'bmp'])
@@ -102,21 +103,25 @@ if total_class_input:
                         col2.warning("Class Name must be Unique", icon='⚠️')
                 else:
                     col2.warning("Data doesn't Complete", icon='⚠️')
-    except:
+    except Exception as e:
+        print(e)
         st.warning('Please fill with number', icon="⚠️")
 
 # print(st.session_state.isModelTrained)
 try:
     if st.session_state.isModelTrained:
         try:
-            f.displaySidebarResults()
-        # except Exception as e: print(e)
-        except:
-            st.warning("Input more images", icon='⚠️')
+            model = tf.keras.models.load_model('simple_teachable_machine_model_trained.h5')
+            f.displaySidebarResults(model)
+        except Exception as e: 
+            print(e)
+        # except:
+            st.warning("Input more images to get model evaluation", icon='⚠️')
 
-        model = tf.keras.models.load_model('model_trained.h5')
+        model = tf.keras.models.load_model('simple_teachable_machine_model_trained.h5')
         f.predictModel(model)
 except:
-    st.warning("Train model first to predict data", icon='✌️')
+    st.warning("Train model first to predict data", icon='ℹ️')
     
 # st.write(st.session_state)
+
