@@ -80,7 +80,7 @@ if total_class_input:
             # TRAINING
             col1, col2, col3 = st.columns(3, gap="large")
             # with col2:
-            btn_training = col2.button("Training Model", type="primary")
+            btn_training = col2.button("Train Model", type="primary")
 
             checkbox_advanced = col2.checkbox("Advanced")
             if checkbox_advanced:
