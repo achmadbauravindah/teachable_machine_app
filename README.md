@@ -3,7 +3,9 @@ Simple Teachable Machine
 <br>
 <span>┄</span>
 </h1>
+
 ![Example Tutorial Simple Teachable Machine](tutorial_tm.gif)
+
 ## About App
 This app is motivated from google <a href="https://teachablemachine.withgoogle.com/train/image">Teachble Machine</a>. Simple Teachable Machine can train deep learning model directly for images classification. The model is built from some layers of convolution (Conv2D) and fully-connected layer (FCL) which is integrated into MobileNetV2. MobileNetV2 is a architecture of deep learning that small, efficient and fast to train the model. Visit this <a href="https://achmadbauravindah-teachable-machine-streamlit-app-xvaa1a.streamlit.app/">link</a> to open the app  
 
